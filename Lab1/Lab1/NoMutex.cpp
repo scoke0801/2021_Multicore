@@ -11,8 +11,11 @@ atomic <int> sum;
 atomic <bool> flags[8];
 atomic <int> labels[8];
 
-mutex myl; 
-void worket_bakery(int num_threads, int th_id);
+mutex myl;
+
+void worker(int num_threads);
+void worker_mutex(int num_threads);
+void worker_bakery(int num_threads, int th_id);
  
 void bakery_lock(int th_id, int th_count);
 void bakery_unlock(int th_id);
@@ -26,8 +29,10 @@ int main()
 		//시작 시간
 		auto start_t = high_resolution_clock::now();
 
-		for (int j = 0; j < i; ++j) {  
-			workers.emplace_back(worket_bakery, i, j);
+		for (int j = 0; j < i; ++j) {
+			//workers.emplace_back(worker, i);
+			//workers.emplace_back(worker_mutex, i);
+			workers.emplace_back(worker_bakery, i, j);
 		}
 		for (auto& th : workers) {
 			th.join();
@@ -42,7 +47,25 @@ int main()
 		cout << "	sum = " << sum << "\n";
 	}
 } 
-void worket_bakery(int num_threads, int th_id)
+void worker(int num_threads)
+{
+	const int loop_count = 5000000 / num_threads;
+	for (auto i = 0; i < loop_count; ++i) { 
+		sum = sum + 2; 
+	}
+}
+
+void worker_mutex(int num_threads)
+{
+	const int loop_count = 5000000 / num_threads;
+	for (auto i = 0; i < loop_count; ++i) { 
+		myl.lock();
+		sum = sum + 2;
+		myl.unlock();
+	}
+}
+
+void worker_bakery(int num_threads, int th_id)
 {
 	const int loop_count = 5000000 / num_threads;
 	for (auto i = 0; i < loop_count; ++i) {
@@ -52,8 +75,7 @@ void worket_bakery(int num_threads, int th_id)
 	}
 }
 
-void bakery_lock(int th_id, int th_count)
-
+void bakery_lock(int th_id, int th_count) 
 {
 	// 번호표 발급
 	flags[th_id] = true;
@@ -68,34 +90,15 @@ void bakery_lock(int th_id, int th_count)
 	flags[th_id] = false;
 
 	for (int i = 0; i < th_count; ++i) {
-		while (flags[i]){
-			// 번호표를 받을 때까지 대기
+		while (flags[i]) { 
+			std::this_thread::yield();
 		}
-
-		// 번호표를 받은 경우
-		while (labels[i] != 0) {
-			if (labels[i] > labels[th_id]) {
-				// 순번이 돌아온 경우 
-				break;
-			}
-			else if (labels[i] < labels[th_id]) {
-				// 순번이 돌아오지 않은 경우
-				// 대기
-				continue;
-			}
-			else {
-				// 같은 순번인 경우
-				if (i < th_id) {
-					// 더 작은 스레드id를 가진 쪽이 우선해서 작업하도록 
-					// 대기
-					continue;
-				}
-				else {
-					break;
-				}
-			}
+		while (labels[i] != 0 &&
+			((labels[i] < labels[th_id]) ||
+				(labels[i] == labels[th_id] && i < th_id))) {
+			std::this_thread::yield();
 		}
-	}
+	} 
 }
 
 void bakery_unlock(int th_id) 
