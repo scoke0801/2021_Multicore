@@ -199,17 +199,17 @@ public:
 		}
 
 		if (curr->key == x) {
-			pred->unlock();
 			curr->unlock();
+			pred->unlock();
 			return false;
 		}
 		else {
 			NODE* new_node = new NODE(x);
 			pred->next = new_node;
-			new_node->next = pred;
+			new_node->next = curr;
 
-			pred->unlock();
 			curr->unlock();
+			pred->unlock();
 			return true;
 		}
 	}
@@ -232,16 +232,16 @@ public:
 		}
 
 		if (curr->key != x) {
-			pred->unlock();
 			curr->unlock();
+			pred->unlock();
 			return false;
 		}
 		else {
 			pred->next = curr->next;
 			curr->unlock();
+			pred->unlock();
 			delete curr;
 
-			pred->unlock();
 			return true;
 		}
 	}
@@ -259,11 +259,11 @@ public:
 		}
 
 		if (curr->key != x) {
-			curr->unlock();
+			//curr->unlock();
 			return false;
 		}
 		else {
-			curr->unlock();
+			//curr->unlock();
 			return true;
 		}
 	}
@@ -282,10 +282,10 @@ public:
 	}
 };
 
-C_SET myset;
-//F_SET myset;
-// 
-// 세밀한 동깋를 할 때,
+//C_SET myset;
+F_SET myset;
+ 
+// 세밀한 동기화를 할 때,
 // 검색 및 수정 모두에서 잠금이 필요
 
 void Benchmark(int num_threads)
