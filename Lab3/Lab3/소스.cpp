@@ -127,9 +127,7 @@ public:
 	{
 		NODE *curr;
 		
-		c_lock.lock();
-		// 가능하면 lock으로 잠기는 영역을 줄이는게 병렬성 측면에서 좋다.
-		// 여기서부터 공유메모리
+		c_lock.lock(); 
 		curr = head.next;
 
 		while (curr->key < x) { 
@@ -185,9 +183,7 @@ public:
 		NODE* pred, * curr;
 
 		head.lock();
-		pred = &head;
-		// 가능하면 lock으로 잠기는 영역을 줄이는게 병렬성 측면에서 좋다.
-		// 여기서부터 공유메모리
+		pred = &head; 
 
 		curr = pred->next;
 		curr->lock();
@@ -249,9 +245,7 @@ public:
 	bool contains(int x)
 	{
 		NODE* curr;
-
-		// 가능하면 lock으로 잠기는 영역을 줄이는게 병렬성 측면에서 좋다.
-		// 여기서부터 공유메모리
+		 
 		curr = head.next;
 
 		while (curr->key < x) {
@@ -284,10 +278,7 @@ public:
 
 //C_SET myset;
 F_SET myset;
- 
-// 세밀한 동기화를 할 때,
-// 검색 및 수정 모두에서 잠금이 필요
-
+   
 void Benchmark(int num_threads)
 {
 	const int NUM_TEST = 4000000;
