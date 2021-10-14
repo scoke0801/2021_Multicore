@@ -31,3 +31,9 @@
 *.out
 *.app
 *.opendb
+*.tlog
+*.pdb
+*.recipe
+*.idb
+*.iobj
+*.ipch
