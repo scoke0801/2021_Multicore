@@ -8,6 +8,11 @@
 using namespace std;
 using namespace chrono;
 
+bool CAS(volatile int* addr, int expected, int new_val)
+{
+	return atomic_compare_exchange_strong(reinterpret_cast<volatile atomic_int*>(addr), &expected, new_val);
+}
+
 class NODE {
 public:
 	int key;
@@ -36,17 +41,17 @@ public:
 	void lock() {}
 	void unlock() {}
 };
-class L_SET {
+class LF_SET {
 	NODE head, tail;
 public:
-	L_SET()
+	LF_SET()
 	{
 		head.key = 0x80000000;
 		tail.key = 0x7FFFFFFF;
 		head.next = &tail;
 	}
 
-	~L_SET() { init(); }
+	~LF_SET() { init(); }
 	void init()
 	{
 		while (head.next != &tail) {
@@ -171,7 +176,7 @@ public:
 	}
 };
 
-L_SET myset;
+LF_SET myset;
 
 // 세밀한 동기화를 할 때,
 // 검색 및 수정 모두에서 잠금이 필요
