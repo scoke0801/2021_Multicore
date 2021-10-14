@@ -71,22 +71,27 @@ public:
 
 		return CAS(oldvalue, newvalue);
 	}
+
 	NODE* GetReference()
 	{
 		return nullptr;
 	}
+
 	NODE* Get(bool* mark)
 	{
 		return nullptr;
 	}
+
 	bool AttemptMark(NODE* nextnode, bool mark)
 	{
 		return false;
 	}
+
 	Window AtomicMarkableReference()
 	{
 
 	}
+
 	//CompareAndSet(oldmark, newmark, *oldnode, *newnode)
 	//{
 	//
@@ -102,6 +107,7 @@ public:
 		curr = myCurr;
 	} 
 };
+
 // 싱글스레드를 테스트하기 위해
 // 아래의 null_mutex객체를 이용함.
 class null_mutex
@@ -112,6 +118,7 @@ public:
 };
 class LF_SET {
 	NODE head, tail;
+
 public:
 	LF_SET()
 	{
