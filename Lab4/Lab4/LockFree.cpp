@@ -52,7 +52,6 @@ public:
 		else newvalue = newvalue & LSB_MASK;
 
 		return atomic_compare_exchange_strong(reinterpret_cast<atomic_int64_t*>(&next), &oldvalue, newvalue);
-		//return CAS(oldvalue, newvalue);
 	} 
 	bool AttemptMark(NODE* node, bool mark)
 	{
@@ -75,10 +74,6 @@ public:
 		head.key = 0x80000000;
 		tail.key = 0x7FFFFFFF;
 		head.set_next(&tail, false);
-
-		/*head.key = 0x80000000;
-		tail.key = 0x7FFFFFFF;
-		head.next = &tail;*/
 	}
 
 	~LF_SET() { init(); }

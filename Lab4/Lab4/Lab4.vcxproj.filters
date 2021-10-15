@@ -27,6 +27,9 @@
     <ClCompile Include="LockFree.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="LOCK_FREE_32.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="메모.txt" />
