@@ -8,114 +8,64 @@
 using namespace std;
 using namespace chrono;
 
-bool CAS(volatile int* addr, int expected, int new_val)
-{
-	return atomic_compare_exchange_strong(reinterpret_cast<volatile atomic_int*>(addr), &expected, new_val);
-}
+constexpr long long MAX_INT = 0x7FFFFFFFFFFFFFFF;
+constexpr long long MIN_INT = 0x8000000000000000;
 
-class AtomicMarkableReference
-{
-public:
-	AtomicMarkableReference();
-	AtomicMarkableReference(NODE* curr, bool mark) {
-
-	}
-};
+constexpr long long LSB_MASK = 0x7FFFFFFFFFFFFFFE; 
+  
 class NODE {
 public:
-	int key;
-	//AtomicMarkableReference next;
-	NODE* next;
-	mutex node_lock;
-	bool marked;	// removed
+	int key; 
+	long long next; // 복합 포인터 
 
-	NODE() { next = nullptr; marked = false; }
-	NODE(int key_value) { key = key_value; next = nullptr; marked = false; }
+	NODE() {}
+	NODE(int key_value) { key = key_value; }
 	~NODE() {}
-	void lock()
+
+	void set_next(NODE* ptr, bool removed)
 	{
-		node_lock.lock();
+		next = reinterpret_cast<long long>(ptr);
+		if (removed) {
+			next++;
+			// LSB 조절
+		}
 	}
-	void unlock()
+	NODE* get_next()
 	{
-		node_lock.unlock();
+		return reinterpret_cast<NODE*>(next & LSB_MASK);
 	}
-	bool CAS(int old_v, int new_v)
+	NODE* get_next(bool *removed)
 	{
-		return atomic_compare_exchange_strong(
-			reinterpret_cast<atomic_int*>(&next), &old_v, new_v);
-	}
-	bool CAS32(NODE* old_node, NODE* new_node,
-		bool oldMark, bool newMark) 
-	{
-		int oldvalue = reinterpret_cast<int>(old_node);
-		if (oldMark) oldvalue = oldvalue | 0x01;
-		else oldvalue = oldvalue & 0xFFFFFFFE;
-
-		int newvalue = reinterpret_cast<int>(new_node);
-
-		if (newMark) newvalue = newvalue | 0x01;
-		else newvalue = newvalue & 0xFFFFFFFE;
-		return CAS(oldvalue, newvalue);
-	}
-
-	bool CAS64(NODE* old_node, NODE* new_node, bool oldMark, bool newMark)
-	{
-		long oldvalue = reinterpret_cast<long>(old_node);
-		if (oldMark) oldvalue = oldvalue | 0x01;
-		else oldvalue = oldvalue & 0xFFFFFFFFFFFFFFFE;
-
-		long newvalue = reinterpret_cast<long>(new_node); 
-		if (newMark) newvalue = newvalue | 0x01;
-		else newvalue = newvalue & 0xFFFFFFFFFFFFFFFE;
-
-		return CAS(oldvalue, newvalue);
-	}
-
-	NODE* GetReference()
-	{
-		return nullptr;
-	}
-
-	NODE* Get(bool* mark)
-	{
-		return nullptr;
-	}
-
-	bool AttemptMark(NODE* nextnode, bool mark)
-	{
-		return false;
-	}
-
-	Window AtomicMarkableReference()
-	{
-
-	}
-
-	//CompareAndSet(oldmark, newmark, *oldnode, *newnode)
-	//{
-	//
-	//}
-}; 
-
-class Window {
-public:
-	NODE* pred, * curr;
-
-	Window(NODE* myPred, NODE* myCurr) {
-		pred = myPred; 
-		curr = myCurr;
+		long long value = next;
+		*removed = (1 ==(value & 0x1));
+		return reinterpret_cast<NODE*>(value & LSB_MASK);
 	} 
-};
 
-// 싱글스레드를 테스트하기 위해
-// 아래의 null_mutex객체를 이용함.
-class null_mutex
-{
-public:
-	void lock() {}
-	void unlock() {}
-};
+	bool CAS_NEXT(NODE* old_node, NODE* new_node, bool oldMark, bool newMark)
+	{
+		long long oldvalue = reinterpret_cast<long long>(old_node);
+		if (oldMark) oldvalue = oldvalue | 0x01; // old_value++;
+		else oldvalue = oldvalue & LSB_MASK;
+
+		long long newvalue = reinterpret_cast<long long>(new_node); 
+		if (newMark) newvalue = newvalue | 0x01; // new_value++;
+		else newvalue = newvalue & LSB_MASK;
+
+		return atomic_compare_exchange_strong(reinterpret_cast<atomic_int64_t*>(&next), &oldvalue, newvalue);
+		//return CAS(oldvalue, newvalue);
+	} 
+	bool AttemptMark(NODE* node, bool mark)
+	{
+		long long oldvalue = reinterpret_cast<long long>(node);
+
+		long long newvalue = reinterpret_cast<long long>(node);
+		if (mark) newvalue = newvalue | 0x01; // new_value++;
+		else newvalue = newvalue & LSB_MASK;
+
+		return atomic_compare_exchange_strong(reinterpret_cast<atomic_int64_t*>(&next), &oldvalue, newvalue); 
+	}
+}; 
+  
 class LF_SET {
 	NODE head, tail;
 
@@ -124,38 +74,69 @@ public:
 	{
 		head.key = 0x80000000;
 		tail.key = 0x7FFFFFFF;
-		head.next = &tail;
+		head.set_next(&tail, false);
+
+		/*head.key = 0x80000000;
+		tail.key = 0x7FFFFFFF;
+		head.next = &tail;*/
 	}
 
 	~LF_SET() { init(); }
 	void init()
 	{
-		while (head.next != &tail) {
-			NODE* p = head.next;
-			head.next = p->next;
+		while (head.get_next() != &tail) {
+			NODE* p = head.get_next();
+			head.set_next(p->get_next(), false);
 			delete p;
 		}
 	}
+	void FIND(int x, NODE*& pred, NODE*& curr)
+	{
+		while (true) {
+		retry: 
+			pred = &head;
+			curr = pred->get_next();
+			while (true) {
+				// remove된 curr를 지운다...
+				bool removed;
+				NODE* succ = curr->get_next(&removed);
+				while (true == removed) {
+					bool ret = pred->CAS_NEXT(curr, succ, false, false);
+					if (false == ret) {
+						goto retry;
+					}
+					curr = succ;
+					succ = curr->get_next(&removed);
+				}
 
+				if (curr->key >= x) {
+					return;
+				}
+
+				pred = curr;
+				curr = curr->get_next();
+			}
+		}
+	}
 	bool add(int x)
 	{
 		NODE* pred, * curr;
-
+	 
 		while (true) {
-			Window* window = Find(&head, x);
-			pred = window->pred, curr = window->curr;
+			FIND(x, pred, curr);
 
 			if (curr->key == x) {
 				return false;
 			}
 			else {
 				NODE* node = new NODE(x);
-				node->next = new AtomicMarkableReference(curr, false);
-				if (pred->next->CAS64(curr, node, false, false)) {
+				node->set_next(curr, false);
+
+				if(pred->CAS_NEXT(curr, node, false, false)){
 					return true;
-				}
+				} 
 			}
-		}
+		}  
 	}
 
 	bool remove(int x)
@@ -165,21 +146,20 @@ public:
 		bool snip;
 
 		while (true) {
-			Window* window = Find(&head, x);
-			pred = window->pred;
-			curr = window->curr;
+			FIND(x, pred, curr); 
 
 			if (curr->key != x) {
 				return false;
 			}
 			else {
-				NODE* succ = curr->next->GetReference();
-				snip = curr->next->AttemptMark(succ, true);
+				NODE* succ = curr->get_next();
+				snip = curr->AttemptMark(succ, true);
 				if (!snip) {
 					continue;
 				}
-				pred->next->CAS64(curr, succ, false, false);
-				return true;
+				if (pred->CAS_NEXT(curr, succ, false, false)) {
+					return true;
+				}
 			}
 		}
 	}
@@ -189,63 +169,29 @@ public:
 		NODE* pred, * curr;
 
 		// 게으른 동기화를 통해 wait-free
-
-		// 가능하면 lock으로 잠기는 영역을 줄이는게 병렬성 측면에서 좋다.
-		// 여기서부터 공유메모리
+		 
 		bool marked[] = { false, };
-		NODE* curr = &head;
+		curr = &head;
 		while (curr->key < x) {
-			curr = curr->next->GetReference();
-			NODE* succ = curr->next->Get(marked);
+			curr = curr->get_next();
+			NODE* succ = curr->get_next(marked);
 		}
 		return (curr->key == x && !marked[0]);
 	}
 
 	void verify()
 	{
-		NODE* p = head.next;
+		NODE* p = head.get_next();
 		for (int i = 0; i < 20; ++i) {
 			if (p == &tail) {
 				break;
 			}
 			cout << p->key << ", ";
-			p = p->next;
+			p = p->get_next();
 		}
 		cout << "\n";
-	}
-	bool validate(NODE* pred, NODE* curr)
-	{
-		return !pred->marked && !curr->marked &&
-			(pred->next == curr);
-	}
-
-	Window* Find(NODE* head, int key) {
-		NODE* pred = nullptr;
-		NODE* curr = nullptr;
-		NODE* succ = nullptr;
-
-		bool marked[] = { false, };
-		bool snip = false;
-		while (true)
-		{
-			pred = head;
-			curr = pred->next->GetReference();
-
-			while (true) {
-				succ = curr->next->CAS64(curr, succ, false, false);
-				if (!snip) {
-					continue;
-				}
-				curr = succ;
-				succ = curr->next->Get(marked);
-			}
-			if (curr->key >= key) {
-				return new Window(pred, curr);
-			}
-			pred = curr;
-			curr = succ;
-		}
-	}
+	} 
+	 
 };
 
 LF_SET myset;
