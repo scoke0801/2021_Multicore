@@ -1,0 +1,8 @@
+﻿  LockFree.cpp
+C:\UsingProject\2021_Multicore\Lab4\Lab4\LockFree.cpp(164,9): warning C4101: 'pred' :참조되지 않은 지역 변수입니다.
+  코드를 생성하고 있습니다.
+  148 of 152 functions (97.4%) were compiled, the rest were copied from previous compilation.
+    7 functions were new in current compilation
+    1 functions had inline decision re-evaluated but remain unchanged
+  코드를 생성했습니다.
+  Lab4.vcxproj -> C:\UsingProject\2021_Multicore\Lab4\Release\Lab4.exe
