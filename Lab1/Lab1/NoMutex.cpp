@@ -1,4 +1,4 @@
-#include <iostream>
+ï»¿#include <iostream>
 #include <mutex>
 #include <chrono>
 #include <vector>
@@ -11,34 +11,54 @@ atomic <int> sum;
 atomic <bool> flags[8];
 atomic <int> labels[8];
 
+
 mutex myl;
 
 void worker(int num_threads);
 void worker_mutex(int num_threads);
 void worker_bakery(int num_threads, int th_id);
- 
+void worker_p(int num_threads, int th_id);
+
 void bakery_lock(int th_id, int th_count);
 void bakery_unlock(int th_id);
 
+volatile int victim = 0;
+atomic <unsigned char> flag[2] = { 0, 0 };
+void p_lock(int th_id)
+{
+	int yourID = 1 - th_id;
+	flag[th_id] = 1;
+	
+	victim = th_id;
+	while ((flag[yourID].fetch_add(0) == 1) && victim == th_id)
+	{
+
+	}
+}
+void p_unlock(int th_id)
+{
+	flag[th_id] = false;
+}
 int main()
 {
 	// Threads 1,2,4,8
-	for (int i = 1; i <= 8; i *= 2) {
+	for (int i = 1; i <= 2; i *= 2) {
 		sum = 0; 
 		vector <thread> workers;
-		//½ÃÀÛ ½Ã°£
+		//ì‹œìž‘ ì‹œê°„
 		auto start_t = high_resolution_clock::now();
 
 		for (int j = 0; j < i; ++j) {
 			//workers.emplace_back(worker, i);
 			//workers.emplace_back(worker_mutex, i);
-			workers.emplace_back(worker_bakery, i, j);
+			workers.emplace_back(worker_p, i, j);
+			//workers.emplace_back(worker_bakery, i, j);
 		}
 		for (auto& th : workers) {
 			th.join();
 		}
 
-		// Á¾·á ½Ã°£
+		// ì¢…ë£Œ ì‹œê°„
 		auto end_t = high_resolution_clock::now();
 		auto du_t = end_t - start_t;
 
@@ -75,9 +95,19 @@ void worker_bakery(int num_threads, int th_id)
 	}
 }
 
+void worker_p(int num_threads, int th_id)
+{
+	const int loop_count = 5000000 / num_threads;
+	for (auto i = 0; i < loop_count; ++i) {
+		p_lock(th_id);
+		sum = sum + 2;
+		p_unlock(th_id);
+	}
+}
+
 void bakery_lock(int th_id, int th_count) 
 {
-	// ¹øÈ£Ç¥ ¹ß±Þ
+	// ë²ˆí˜¸í‘œ ë°œê¸‰
 	flags[th_id] = true;
 
 	int max_label = labels[0];
@@ -99,6 +129,7 @@ void bakery_lock(int th_id, int th_count)
 			std::this_thread::yield();
 		}
 	} 
+	// í‹€ë¦¼,,,,
 }
 
 void bakery_unlock(int th_id) 
