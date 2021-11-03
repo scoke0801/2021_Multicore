@@ -9,12 +9,32 @@
 using namespace std;
 using namespace chrono;
 
-set<int> t;
 
 enum MethodType { INSERT, ERASE, CLEAR };
 
 typedef int InputValue;
 typedef int Response;
+constexpr int INIT = -1;
+constexpr int MAX_THREADS = 8;
+
+bool CAS(NODE* volatile& next, NODE* old_node, NODE* new_node); 
+ 
+bool CAS(volatile int* addr, int expected, int new_val);
+
+class Consensus {
+public:
+	Consensus()
+	{
+		d_value = -1; // INIT은 절대로 사용되지 않는 값
+	}
+	int decide(int value) 
+	{
+		CAS(&d_value, INIT, value);
+		return d_value;
+	}
+private:
+	volatile int d_value;
+};
 
 class Invocation {
 public:
@@ -50,6 +70,7 @@ public:
 		next = nullptr;
 		seq = 0;
 	}
+	NODE* max(NODE** head);
 };
 
 
@@ -63,16 +84,15 @@ public:
 		tail.seq = 1;
 		for (int i = 0; i < MAX_THREAD; ++i) head[i] = &tail;
 	}
-	Response apply(Invocation invoc) {
-		int i = Thread_id();
+	Response apply(Invocation invoc, int thread_id) { 
 		NODE prefer = NODE(invoc);
 		while (prefer.seq == 0) {
 			NODE* before = tail.max(head);
 			NODE* after = before->decideNext->decide(&prefer);
 			before->next = after; after->seq = before->seq + 1;
-			head[i] = after;
+			head[thread_id] = after;
 		}
-		SeqObject myObject;
+		SeqObject_Set myObject;
 		NODE* current = tail.next;
 		while (current != &prefer) {
 			myObject.apply(current->invoc);
@@ -80,47 +100,53 @@ public:
 		}
 		return myObject.apply(current->invoc);
 	}
+
+	void init();
+	void add(int value);
+	bool remove(int value);
+	bool contains(int value);
+	bool verify(int num);
 };
 
 class WFUniversal{
 private:
-	Node* announce[N];
-	Node* head[N];
-	Node tail;
+	NODE* announce[MAX_THREADS];
+	NODE* head[MAX_THREADS];
+	NODE tail;
 public:
 	WFUniversal() {
 		tail.seq = 1;
-		for (int i = 0; i < N; ++i) { head[i] = &tail; announce[i] = &tail; }
+		for (int i = 0; i < MAX_THREADS; ++i) {
+			head[i] = &tail; announce[i] = &tail; 
+		}
 	}
-	Response apply(Invocation invoc) {
-		int i = Thread_id();
-		announce[i] = new NODE(invoc);
-		head[i] = tail.max(head);
-		while (announce[i]->seq == 0) {
-			NODE* before = head[i];
-			NODE* help = announce[((before->seq + 1) % N)];
+	Response apply(Invocation invoc, int thread_id) { 
+		announce[thread_id] = new NODE(invoc);
+		head[thread_id] = tail.max(head);
+		while (announce[thread_id]->seq == 0) {
+			NODE* before = head[thread_id];
+			NODE* help = announce[((before->seq + 1) % MAX_THREADS)];
 			NODE* prefer;
 			if (help->seq == 0) prefer = help;
-			else prefer = announce[i];
+			else prefer = announce[thread_id];
 			NODE* after = before->decideNext->decide(prefer);
 			before->next = after;
 			after->seq = before->seq + 1;
-			head[i] = after;
+			head[thread_id] = after;
 		}
-		SeqObject myObject;
-		Node* current = tail.next;
-		while (current != announce[i]) {
+		SeqObject_Set myObject;
+		NODE* current = tail.next;
+		while (current != announce[thread_id]) {
 			myObject.apply(current->invoc);
 			current = current->next;
 		}
-		head[i] = announce[i];
+		head[thread_id] = announce[thread_id];
 		return myObject.apply(current->invoc);
 	}
 };
 
-
-
-FREE_SET myset;
+ 
+LFUniversal myset;
 
 // 세밀한 동기화를 할 때,
 // 검색 및 수정 모두에서 잠금이 필요
@@ -167,8 +193,20 @@ int main()
 		auto end_t = system_clock::now();
 		auto exec_t = end_t - start_t;
 
-		myset.verify();
+		myset.verify(20);
 		cout << i << " threads	";
 		cout << "exec_time = " << duration_cast<milliseconds>(exec_t).count() << " ms\n";
 	}
+}
+
+bool CAS(NODE* volatile& next, NODE* old_node, NODE* new_node)
+{
+	return atomic_compare_exchange_strong(reinterpret_cast<volatile atomic_int64_t*>(&next),
+		reinterpret_cast<long long*>(&old_node),
+		reinterpret_cast<long long>(new_node));
+}
+ 
+bool CAS(volatile int* addr, int expected, int new_val)
+{
+	return atomic_compare_exchange_strong(reinterpret_cast<volatile atomic_int*>(addr), &expected, new_val);
 }
