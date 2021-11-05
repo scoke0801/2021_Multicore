@@ -20,6 +20,7 @@ public:
 	NODE(int key_value) { key = key_value; next = nullptr; }
 	~NODE() {}
 };
+
 class null_mutex {
 public:
 	void lock() {}
@@ -50,16 +51,10 @@ public:
 		if (e == nullptr) {
 			return;
 		}
-		e->key = x;
 
-		c_lock.lock();
-
-		if (top == nullptr) {
-			e->next = nullptr;
-		}
-		else {
-			e->next = top;
-		}
+		c_lock.lock(); 
+		
+		e->next = top;
 		top = e;
 
 		c_lock.unlock();
@@ -104,8 +99,87 @@ public:
 			reinterpret_cast<long long>(new_node));
 	}
 };
+class LF_STACK {
+public:
+	NODE* volatile top; 
 
-C_STACK mystack;
+	LF_STACK() : top(nullptr)
+	{
+	}
+
+	~LF_STACK() { init(); }
+	void init()
+	{
+		while (top != nullptr) {
+			NODE* p = top;
+			top = top->next;
+			delete p;
+		}
+	}
+	void push(int x)
+	{
+		NODE* e = new NODE(x);
+		if (e == nullptr) {
+			return;
+		}
+
+		while (true) {
+			NODE* curr = top;
+			e->next = curr;
+			if (CAS_TOP(curr, e)) {
+				return;
+			}
+		} 
+	}
+
+	int pop()
+	{ 
+		while (true) {
+			if (top == nullptr) {
+				return -2;
+			}
+
+			NODE* cur = top;
+			NODE* next = cur->next;
+
+			int retVal = cur->key;
+			if (CAS_TOP(cur, next)) {
+				return retVal;
+			} 
+		}
+	}
+
+	void verify()
+	{
+		NODE* p = top;
+		for (int i = 0; i < 20; ++i) {
+			if (p == nullptr) {
+				break;
+			}
+			cout << p->key << ", ";
+			p = p->next;
+		}
+		cout << "\n";
+	}
+
+	bool CAS(NODE* volatile& next, NODE* old_node, NODE* new_node)
+	{
+		return atomic_compare_exchange_strong(reinterpret_cast<volatile atomic_int64_t*>(&next),
+			reinterpret_cast<long long*>(&old_node),
+			reinterpret_cast<long long>(new_node));
+	}
+
+	bool CAS_TOP(NODE* old_ptr, NODE* new_ptr) {
+		return atomic_compare_exchange_strong(
+			reinterpret_cast<atomic_llong volatile*>(&top),
+			reinterpret_cast<long long*>(&old_ptr),
+			reinterpret_cast<long long>(new_ptr));
+	}
+};
+
+//C_STACK mystack;
+LF_STACK mystack;
+
 
 // 세밀한 동기화를 할 때,
 // 검색 및 수정 모두에서 잠금이 필요
