@@ -123,7 +123,23 @@ public:
 			return;
 		}
 
+		// 현재 자료구조를 atomic하게 파악
+		// NODE* ptr = top;
+		
+		// 변경될 자료구조를 준비
+		// e->next = ptr;
+
+		// CAS로 충돌을 확인하면서 자료구조를 atomic하게 변경
+		// if(ptr != top) continue; ... 실패가 빈번한 환경에서는 옆의 코드가 좋을 수 도 있다.
+		// CAS_TOP(ptr, e);
+		
+		// 실패하면 처음부터....
+		// 위의 내용을 while(true)로 감싸지
+
 		while (true) {
+			// 변수 사용을 조심해서 할 것.
+			// top을 직접적으로 사용하지 않고 변수에 담아서 사용해야
+			// 해당 값이 결정된 상태로 CAS를 진행할 수 있음
 			NODE* curr = top;
 			e->next = curr;
 			if (CAS_TOP(curr, e)) {
@@ -135,15 +151,22 @@ public:
 	int pop()
 	{ 
 		while (true) {
-			if (top == nullptr) {
+			// 변수 사용을 조심해서 할 것
+			NODE* cur = top;
+
+			if (cur == nullptr) {
 				return -2;
 			}
 
-			NODE* cur = top;
 			NODE* next = cur->next;
-
 			int retVal = cur->key;
+
+			if (cur != top) {
+				continue;
+			}
+
 			if (CAS_TOP(cur, next)) {
+				// delete cur ... aba 문제 발생으로 인하여 주석처리
 				return retVal;
 			} 
 		}
