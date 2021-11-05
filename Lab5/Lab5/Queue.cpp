@@ -132,7 +132,14 @@ public:
 					return;
 				}
 			}
-			else STAMP_CAS(&tail, last.ptr, next, last.stamp, last.stamp + 1);
+			else STAMP_CAS(&tail, last.ptr, next, tail.stamp, tail.stamp + 1);
+
+			/*if (CAS((last->next), nullptr, e)) {
+				CAS(tail, last, e);
+				return;
+
+			else CAS(tail, last, next);
+			} */
 		}
 	}
 
