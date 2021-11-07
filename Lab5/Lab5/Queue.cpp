@@ -23,6 +23,87 @@ struct STPTR {
 	int volatile stamp;
 };
 
+class null_mutex {
+public:
+	void lock() {}
+	void unlock() {}
+};
+class C_QUEUE {
+public:
+	NODE* head;
+	NODE* tail;
+	mutex c_lock;
+
+	C_QUEUE()
+	{
+		head = tail = new NODE(0);
+	}
+
+	~C_QUEUE() { init(); }
+	void init()
+	{
+		while (head != tail) {
+			NODE* p = head;
+			head = head->next;
+			delete p;
+		}
+	}
+	void Enq(int x)
+	{
+		NODE* e = new NODE(x);
+		if (e == nullptr) {
+			return;
+		}
+
+		c_lock.lock();
+		
+		tail->next = e;
+		tail = e;
+
+		c_lock.unlock();
+	}
+
+	int Deq()
+	{  
+		c_lock.lock();
+		
+		if (head == tail) {
+			c_lock.unlock();
+			return -1;
+		}
+
+		NODE* delNode = head;
+		int retVal = delNode->key;
+		head = head->next;
+		delete delNode;
+
+		c_lock.unlock();
+		
+		return retVal;
+	}
+
+	void Verify()
+	{
+		NODE* p = head;
+		for (int i = 0; i < 20; ++i) {
+			if (p == nullptr) {
+				break;
+			}
+			cout << p->key << ", ";
+			p = p->next;
+		}
+		cout << "\n";
+	}
+
+	bool CAS(NODE* volatile& next, NODE* old_node, NODE* new_node)
+	{
+		return atomic_compare_exchange_strong(reinterpret_cast<volatile atomic_int64_t*>(&next),
+			reinterpret_cast<long long*>(&old_node),
+			reinterpret_cast<long long>(new_node));
+	}
+};
+
+
 class LF_QUEUE {
 public:
 	NODE* volatile head;
@@ -188,11 +269,9 @@ public:
 	}
 };
 
+//C_QUEUE myqueue;
 //LF_QUEUE myqueue;
-SPLF_QUEUE myqueue;
-
-// 세밀한 동기화를 할 때,
-// 검색 및 수정 모두에서 잠금이 필요
+SPLF_QUEUE myqueue; 
 
 void Benchmark(int num_threads)
 {
