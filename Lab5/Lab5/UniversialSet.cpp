@@ -9,17 +9,14 @@
 using namespace std;
 using namespace chrono;
 
+enum MethodType { INSERT, ERASE, CLEAR, CONTAIN, VERIFY  };
  
 constexpr int MAX_THREADS = 8;
-
-class SeqObject {
-public:
-	Response apply(Invocation invoc);
-};
-
-enum MethodType { INSERT, ERASE, CLEAR };
+ 
 typedef int InputValue;
 typedef int Response;
+thread_local int thread_id;
+
 class Invocation {
 public:
 	MethodType type;
@@ -34,85 +31,166 @@ public:
 		if (INSERT == invoc.type) m_set.insert(invoc.v);
 		else if (ERASE == invoc.type) res = m_set.erase(invoc.v);
 		else if (CLEAR == invoc.type) m_set.clear();
+		else if (CONTAIN == invoc.type) m_set.find(invoc.v);
+		else if (VERIFY == invoc.type) {
+			int count = 0;
+			for (auto data : m_set) {
+				if (count++ > 20) {
+					break;
+				} 
+				cout << data << ", ";   
+			}
+			cout << "\n"; 
+		}
 		return res;
 	}
-};
+}; 
+
+class NODE;
 class Consensus {
 private:
-	NODE* d_value;
+	atomic<long long>* d_value;
 public:
-	Consensus() {
-		d_value = nullptr; 
-	}
+	Consensus() : d_value(0) {}
 	NODE* decide(NODE* value) {
-		CAS(d_value, nullptr, value);
-		return d_value;
+		long long new_value = reinterpret_cast<long long>(value);
+		long long old_value = 0;
+
+		if (atomic_compare_exchange_strong(reinterpret_cast<atomic_int64_t*>(&value), &old_value, new_value)) {
+			return value;
+		}
+		return reinterpret_cast<NODE*>(old_value);
 	}
 };
 
 class NODE
 {
 public:
-	Invocation invoc;
-	Consensus decideNext;
-	NODE* next;
-	volatile int seq;
-	NODE() { seq = 0; next = nullptr; }
+	NODE() { init(); }
 	~NODE() { }
 	NODE(const Invocation& input_invoc)
 	{
 		invoc = input_invoc;
+		init();
+	} 
+	void init()
+	{
+		decideNext = Consensus();
 		next = nullptr;
 		seq = 0;
 	}
+public:
+	Invocation invoc;
+	Consensus decideNext;
+	NODE* next;
+	volatile int seq;
 };
 
-bool CAS(NODE* volatile& next, NODE* old_node, NODE* new_node);
+bool CAS(NODE* volatile& next, NODE* old_node, NODE* new_node); 
 
-bool CAS(volatile int* addr, int expected, int new_val);
-
+  
 class LFUniversal {
 private:
 	NODE* head[MAX_THREADS];
-	NODE tail;
+	NODE* tail;
 public:
 	LFUniversal() {
-		tail.seq = 1;
-		for (int i = 0; i < MAX_THREADS; ++i) head[i] = &tail;
+		tail = new NODE();
+		tail->seq = 1;
+		for (int i = 0; i < MAX_THREADS; ++i) head[i] = tail;
 	}
-	Response apply(Invocation invoc, int thread_id) {
-		int i = thread_id;
-		NODE prefer = NODE(invoc);
-		while (prefer.seq == 0) {
-			NODE* before = tail.max(head);
-			NODE* after = before->decideNext->decide(&prefer);
-			before->next = after; after->seq = before->seq + 1;
-			head[i] = after;
+	void init()
+	{
+		NODE* p = tail->next;
+		if (p == nullptr)
+			return;
+
+		while (p->next)
+		{
+			NODE* tmp = p;
+			p = p->next;
+			delete tmp;
 		}
-		SeqObject myObject;
-		NODE* current = tail.next;
-		while (current != &prefer) {
+		delete p;
+
+		for (int i = 0; i < MAX_THREADS; ++i)
+			head[i] = tail;
+
+		tail->init();
+	}
+	Response apply(Invocation invoc) {
+		NODE* prefer = new NODE(invoc);
+		// prefer가 성공적으로 head에 추가 되었는지 검사
+		while (prefer->seq == 0) { 
+			NODE* before = max(); 
+			// Log의 head를 찾지만 다른 스레드와 겹쳐져서 잘 못 찾을 수도 있음
+
+			NODE* after = before->decideNext.decide( prefer);
+			// before의 합의는 항상 유일하다!
+
+			before->next = after;
+			after->seq = before->seq + 1;
+			// 여러 스레드가 같은 작업을 반복 할 수 있지만, 상관없다.
+
+			head[thread_id] = after;
+			// 자신이 본 제일 앞의 head는 after니까 업데이트 시켜준다
+			// 이러지 않으면 동일한 합의 객체를 두 번 호출할 수 있다.
+			// 운좋게 after가 prefer가 되면 성공이다
+		}
+		SeqObject_Set myObject;
+		NODE* current = tail->next;
+		while (current != prefer) {
 			myObject.apply(current->invoc);
 			current = current->next;
+			/*if (current->invoc.type == VERIFY) { 
+				break; 
+			}*/
 		}
 		return myObject.apply(current->invoc);
 	}
+	NODE* max() {
+		NODE* p = head[0];
+		for (const auto ptr : head)
+		{
+			if (p->seq < ptr->seq)
+			{
+				p = ptr;
+			}
+		}
 
-	void add(int x) {
-	}
-	void remove(int x) {
+		return p;
 
+		for (int i = 0; i < MAX_THREADS; ++i) {
+			if (head[i]->seq > p->seq) {
+				p = head[i];
+			}
+		}
+		return p;
 	}
-	void contains(int x) {
-
-	}
-	void 
 };
 
-LFUniversal myset;
+class LFUniversalSet{
+	LFUniversal m_set;
 
-// 세밀한 동기화를 할 때,
-// 검색 및 수정 모두에서 잠금이 필요
+public: 
+	void init() {
+		m_set.init();
+	}
+	void add(int key) {
+		m_set.apply({ INSERT, key} );
+	}
+
+	void remove(int key) {
+		m_set.apply({ ERASE, key } );
+	}
+	void contains(int key) {
+		m_set.apply({ CONTAIN, key } );
+	}
+	void verify() {
+		m_set.apply({ VERIFY, 0 });
+	} 
+};
+LFUniversalSet myset;
 
 void Benchmark(int num_threads)
 {
@@ -140,11 +218,7 @@ int main()
 	for (int i = 1; i <= 8; i = i * 2) {
 		myset.init();
 		vector<thread> worker;
-
-		// to clear...
-		//
-		// 
-
+		  
 		auto start_t = system_clock::now();
 		for (int j = 0; j < i; ++j) {
 			worker.emplace_back(Benchmark, i);
@@ -156,7 +230,7 @@ int main()
 		auto end_t = system_clock::now();
 		auto exec_t = end_t - start_t;
 
-		myset.verify(20);
+		//myset.verify();
 		cout << i << " threads	";
 		cout << "exec_time = " << duration_cast<milliseconds>(exec_t).count() << " ms\n";
 	}
@@ -167,9 +241,4 @@ bool CAS(NODE* volatile& next, NODE* old_node, NODE* new_node)
 	return atomic_compare_exchange_strong(reinterpret_cast<volatile atomic_int64_t*>(&next),
 		reinterpret_cast<long long*>(&old_node),
 		reinterpret_cast<long long>(new_node));
-}
-
-bool CAS(volatile int* addr, int expected, int new_val)
-{
-	return atomic_compare_exchange_strong(reinterpret_cast<volatile atomic_int*>(addr), &expected, new_val);
-}
+} 

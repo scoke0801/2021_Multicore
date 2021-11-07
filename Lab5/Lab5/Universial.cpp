@@ -18,8 +18,6 @@ constexpr int INIT = -1;
 constexpr int MAX_THREADS = 8;
 
 bool CAS(NODE* volatile& next, NODE* old_node, NODE* new_node); 
- 
-bool CAS(volatile int* addr, int expected, int new_val);
 
 class Consensus {
 public:
@@ -69,8 +67,7 @@ public:
 		invoc = input_invoc;
 		next = nullptr;
 		seq = 0;
-	}
-	NODE* max(NODE** head);
+	} 
 };
 
 
