@@ -127,19 +127,12 @@ public:
 			NODE* next = last.ptr->next;
 			if (last.ptr != tail.ptr || (last.stamp != tail.stamp)) continue;
 			if (nullptr == next) {
-				if (STAMP_CAS(&last, nullptr, e, last.stamp, last.stamp + 1)) {
-					STAMP_CAS(&tail, last.ptr, e, tail.stamp, tail.stamp + 1); 
+				if (CAS(last.ptr->next, nullptr, e)) {
+					STAMP_CAS(&tail, last.ptr, e, last.stamp, last.stamp + 1);
 					return;
 				}
 			}
-			else STAMP_CAS(&tail, last.ptr, next, tail.stamp, tail.stamp + 1);
-
-			/*if (CAS((last->next), nullptr, e)) {
-				CAS(tail, last, e);
-				return;
-
-			else CAS(tail, last, next);
-			} */
+			else STAMP_CAS(&tail, last.ptr, next, last.stamp, last.stamp + 1);
 		}
 	}
 
@@ -195,6 +188,7 @@ public:
 	}
 };
 
+//LF_QUEUE myqueue;
 SPLF_QUEUE myqueue;
 
 // 세밀한 동기화를 할 때,
