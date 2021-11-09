@@ -35,7 +35,7 @@ public:
 		else if (VERIFY == invoc.type) {
 			int count = 0;
 			for (auto data : m_set) {
-				if (count++ > 20) {
+				if (count++ >= 20) {
 					break;
 				} 
 				cout << data << ", ";   
@@ -56,7 +56,7 @@ public:
 		long long new_value = reinterpret_cast<long long>(value);
 		long long old_value = 0;
 
-		if (atomic_compare_exchange_strong(reinterpret_cast<atomic_int64_t*>(&value), &old_value, new_value)) {
+		if (atomic_compare_exchange_strong(reinterpret_cast<atomic_int64_t*>(&d_value), &old_value, new_value)) {
 			return value;
 		}
 		return reinterpret_cast<NODE*>(old_value);
@@ -85,10 +85,7 @@ public:
 	NODE* next;
 	volatile int seq;
 };
-
-bool CAS(NODE* volatile& next, NODE* old_node, NODE* new_node); 
-
-  
+ 
 class LFUniversal {
 private:
 	NODE* head[MAX_THREADS];
@@ -141,13 +138,11 @@ public:
 		NODE* current = tail->next;
 		while (current != prefer) {
 			myObject.apply(current->invoc);
-			current = current->next;
-			/*if (current->invoc.type == VERIFY) { 
-				break; 
-			}*/
+			current = current->next;  
 		}
 		return myObject.apply(current->invoc);
 	}
+
 	NODE* max() {
 		NODE* p = head[0];
 		for (const auto ptr : head)
@@ -190,6 +185,41 @@ public:
 		m_set.apply({ VERIFY, 0 });
 	} 
 };
+class MutexSet {
+	set<int> m_set;
+	mutex c_lock;
+public:
+	void init() {
+		m_set.clear();
+	}
+	void add(int key) {
+		c_lock.lock();
+		m_set.insert(key);
+		c_lock.unlock();
+	}
+
+	void remove(int key) {
+		c_lock.lock();
+		m_set.erase(key);
+		c_lock.unlock();
+	}
+	void contains(int key) {
+		c_lock.lock();
+		m_set.find(key);
+		c_lock.unlock();
+	}
+	void verify() {
+		int count = 0;
+		for (auto data : m_set) {
+			if (count++ >= 20) {
+				break;
+			}
+			cout << data << ", ";
+		}
+		cout << "\n";
+	}
+};
+//MutexSet		myset;
 LFUniversalSet myset;
 
 void Benchmark(int num_threads)
@@ -230,15 +260,8 @@ int main()
 		auto end_t = system_clock::now();
 		auto exec_t = end_t - start_t;
 
-		//myset.verify();
+		myset.verify();
 		cout << i << " threads	";
 		cout << "exec_time = " << duration_cast<milliseconds>(exec_t).count() << " ms\n";
 	}
-}
-
-bool CAS(NODE* volatile& next, NODE* old_node, NODE* new_node)
-{
-	return atomic_compare_exchange_strong(reinterpret_cast<volatile atomic_int64_t*>(&next),
-		reinterpret_cast<long long*>(&old_node),
-		reinterpret_cast<long long>(new_node));
 } 
