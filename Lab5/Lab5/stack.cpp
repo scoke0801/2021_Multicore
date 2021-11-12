@@ -376,7 +376,7 @@ public:
 		while (true) {
 			unsigned int curr_slot = slot;
 			unsigned int slot_state = curr_slot & 0xC0000000; // 앞의 두 비트만 빼내기
-			unsigned int slot_value = curr_slot & 0x7FFFFFFF; // 나머지 비트 값 알아오기
+			unsigned int slot_value = curr_slot & 0x3FFFFFFF; // 나머지 비트 값 알아오기
 
 			switch (slot_state) {
 			case EMPTY:
@@ -386,7 +386,7 @@ public:
 					for (int i = 0; i < 10; ++i) {
 						if (slot & 0xC0000000 == BUSY) {
 
-							int ret_value = slot & 0x7FFFFFFF;
+							int ret_value = slot & 0x3FFFFFFF;
 
 							slot = EMPTY;
 
@@ -401,7 +401,7 @@ public:
 					}
 					else {
 						// 다른 스레드가 와서 busy로 만든 경우는 여기로옴
-						int ret_value = slot & 0x7FFFFFFF;
+						int ret_value = slot & 0x3FFFFFFF;
 
 						slot = EMPTY;
 
