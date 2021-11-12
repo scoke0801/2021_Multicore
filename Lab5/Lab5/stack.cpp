@@ -201,8 +201,7 @@ public:
 			reinterpret_cast<long long>(new_ptr));
 	}
 };
-
-
+ 
 // BackOff stack
 class BackOff {
 	int minDelay, maxDelay;
@@ -446,10 +445,10 @@ class EliminationArray {
 
 	LockFreeExchanger exchanger[MAX_THREADS / 2];
 public:
+	EliminationArray() {}
 	EliminationArray(int num_threads) :_num_threads(num_threads) { range = 1; }
 	~EliminationArray() {}
-	int Visit(int value, bool* time_out) {
-		int ret = -2;
+	int Visit(int value, bool* time_out) { 
 		int slot = rand() % range;
 		bool busy;
 		int ret = exchanger[slot].exchange(value, time_out, &busy);
