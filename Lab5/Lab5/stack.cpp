@@ -378,12 +378,12 @@ public:
 			unsigned int slot_value = curr_slot & 0x3FFFFFFF; // 나머지 비트 값 알아오기
 
 			switch (slot_state) {
-			case EMPTY:
+			case EMPTY: {
 				unsigned int new_slot = WAITING & value;
 				if (atomic_compare_exchange_strong(&slot, &curr_slot, new_slot))
 				{
 					for (int i = 0; i < 10; ++i) {
-						if (slot & 0xC0000000 == BUSY) {
+						if ((slot & 0xC0000000) == BUSY) {
 
 							int ret_value = slot & 0x3FFFFFFF;
 
@@ -411,8 +411,9 @@ public:
 					// 애초에 cas가 실패한경우
 					continue;
 				}
+			}
 				break;
-			case WAITING:
+			case WAITING: {
 				unsigned int new_value = BUSY | value;
 				if (atomic_compare_exchange_strong(&slot, &curr_slot, new_value)) {
 					*time_out = false;
@@ -426,10 +427,12 @@ public:
 					*busy = true;
 					return 0;
 				}
+			}
 				break;
-			case BUSY:
+			case BUSY: {
 				*time_out = false;
 				*busy = true;
+			}
 				return 0;
 				break;
 			default:
@@ -440,12 +443,12 @@ public:
 };
 
 class EliminationArray {
-	int range;
-	int _num_threads;
+	 int range;
+	 int _num_threads;
 
 	LockFreeExchanger exchanger[MAX_THREADS / 2];
 public:
-	EliminationArray() {}
+	EliminationArray() { range = 1; _num_threads = 1; }
 	EliminationArray(int num_threads) :_num_threads(num_threads) { range = 1; }
 	~EliminationArray() {}
 	int Visit(int value, bool* time_out) { 
@@ -457,6 +460,8 @@ public:
 		// MAX RANGE is # of thread / 2
 		return ret;
 	}
+
+	void set_threads_num(int num) { _num_threads = num; }
 };
 
 class LFEL_STACK {
@@ -469,9 +474,11 @@ public:
 	{
 	}
 
-	~LFEL_STACK() { init(); }
-	void init()
+	~LFEL_STACK() { init(0); }
+	void init(int threads_num)
 	{
+		_earray.set_threads_num(threads_num);
+
 		while (top != nullptr) {
 			NODE* p = top;
 			top = top->next;
@@ -485,20 +492,7 @@ public:
 		if (e == nullptr) {
 			return;
 		}
-
-		// 현재 자료구조를 atomic하게 파악
-		// NODE* ptr = top;
-
-		// 변경될 자료구조를 준비
-		// e->next = ptr;
-
-		// CAS로 충돌을 확인하면서 자료구조를 atomic하게 변경
-		// if(ptr != top) continue; ... 실패가 빈번한 환경에서는 옆의 코드가 좋을 수 도 있다.
-		// CAS_TOP(ptr, e);
-
-		// 실패하면 처음부터....
-		// 위의 내용을 while(true)로 감싸지
-
+		  
 		while (true) {
 			// 변수 사용을 조심해서 할 것.
 			// top을 직접적으로 사용하지 않고 변수에 담아서 사용해야
@@ -511,13 +505,15 @@ public:
 			else {
 				bool time_out; 
 				int ret = _earray.Visit(x, &time_out);
+				if ((false == time_out) && (ret == -1)) {
+					return;
+				}
 			}
 		}
 	}
 
 	int pop()
-	{
-		BackOff bo{ 1, 100 };
+	{ 
 		while (true) {
 			// 변수 사용을 조심해서 할 것
 			NODE* cur = top;
@@ -534,11 +530,15 @@ public:
 			}
 
 			if (CAS_TOP(cur, next)) {
-				// delete cur ... aba 문제 발생으로 인하여 주석처리
+				//delete cur; //... aba 문제 발생으로 인하여 주석처리
 				return retVal;
 			}
 			else {
-				bo.InterruptedException();
+				bool time_out;
+				int ret = _earray.Visit(-1, &time_out);
+				if ((false == time_out) && (ret != -1)) {
+					return ret;
+				} 
 			}
 		}
 	}
@@ -573,10 +573,9 @@ public:
 
 //C_STACK mystack;
 //LF_STACK mystack;
-LFBO_STACK mystack;
+//LFBO_STACK mystack; 
+LFEL_STACK mystack;
 
-// 세밀한 동기화를 할 때,
-// 검색 및 수정 모두에서 잠금이 필요
 
 void Benchmark(int num_threads)
 {
@@ -595,7 +594,7 @@ void Benchmark(int num_threads)
 int main()
 {
 	for (int i = 1; i <= 8; i = i * 2) {
-		mystack.init();
+		mystack.init(i);
 		vector<thread> worker;
 
 		auto start_t = system_clock::now();
