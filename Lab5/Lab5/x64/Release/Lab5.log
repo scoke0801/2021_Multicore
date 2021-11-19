@@ -5,9 +5,15 @@ C:\UsingProject\2021_Multicore\Lab5\Lab5\lazy_skiplist_수업.cpp(634,1): warnin
 C:\UsingProject\2021_Multicore\Lab5\Lab5\lazy_skiplist_수업.cpp(634,1): warning C4302: 'reinterpret_cast': 'LFNODE *'에서 'int'(으)로 잘립니다.
 C:\UsingProject\2021_Multicore\Lab5\Lab5\lazy_skiplist_수업.cpp(636,1): warning C4311: 'reinterpret_cast': 'LFNODE *'에서 'int'(으)로 포인터가 잘립니다.
 C:\UsingProject\2021_Multicore\Lab5\Lab5\lazy_skiplist_수업.cpp(636,1): warning C4302: 'reinterpret_cast': 'LFNODE *'에서 'int'(으)로 잘립니다.
+C:\UsingProject\2021_Multicore\Lab5\Lab5\lazy_skiplist_수업.cpp(1036,1): warning C4311: 'reinterpret_cast': 'LFSKNODE *'에서 'int'(으)로 포인터가 잘립니다.
+C:\UsingProject\2021_Multicore\Lab5\Lab5\lazy_skiplist_수업.cpp(1036,1): warning C4302: 'reinterpret_cast': 'LFSKNODE *'에서 'int'(으)로 잘립니다.
+C:\UsingProject\2021_Multicore\Lab5\Lab5\lazy_skiplist_수업.cpp(1054,1): warning C4311: 'reinterpret_cast': 'LFSKNODE *'에서 'int'(으)로 포인터가 잘립니다.
+C:\UsingProject\2021_Multicore\Lab5\Lab5\lazy_skiplist_수업.cpp(1054,1): warning C4302: 'reinterpret_cast': 'LFSKNODE *'에서 'int'(으)로 잘립니다.
+C:\UsingProject\2021_Multicore\Lab5\Lab5\lazy_skiplist_수업.cpp(1056,1): warning C4311: 'reinterpret_cast': 'LFSKNODE *'에서 'int'(으)로 포인터가 잘립니다.
+C:\UsingProject\2021_Multicore\Lab5\Lab5\lazy_skiplist_수업.cpp(1056,1): warning C4302: 'reinterpret_cast': 'LFSKNODE *'에서 'int'(으)로 잘립니다.
   코드를 생성하고 있습니다.
-C:\UsingProject\2021_Multicore\Lab5\Lab5\lazy_skiplist_수업.cpp(961): error C4703: 초기화되지 않았을 수 있는 로컬 포인터 변수 'target'이(가) 사용되었습니다.
-  24 of 152 functions (15.8%) were compiled, the rest were copied from previous compilation.
-    13 functions were new in current compilation
-    2 functions had inline decision re-evaluated but remain unchanged
-LINK : fatal error LNK1257: 코드를 생성하지 못했습니다.
+  26 of 152 functions (17.1%) were compiled, the rest were copied from previous compilation.
+    22 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
+  코드를 생성했습니다.
+  Lab5.vcxproj -> C:\UsingProject\2021_Multicore\Lab5\x64\Release\Lab5.exe
