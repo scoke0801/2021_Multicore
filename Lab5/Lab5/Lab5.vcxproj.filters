@@ -39,6 +39,9 @@
     <ClCompile Include="skiplist.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="lazy_skiplist_수업.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="수업메모.txt" />
