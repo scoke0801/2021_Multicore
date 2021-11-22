@@ -1,6 +1,7 @@
-﻿  stack.cpp
+﻿  lazy_skiplist_수업.cpp
   코드를 생성하고 있습니다.
-  Previous IPDB not found, fall back to full compilation.
-  All 167 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  21 of 150 functions (14.0%) were compiled, the rest were copied from previous compilation.
+    10 functions were new in current compilation
+    2 functions had inline decision re-evaluated but remain unchanged
   코드를 생성했습니다.
   Lab5.vcxproj -> C:\UsingProjects\2021_Multicore\Lab5\Release\Lab5.exe
