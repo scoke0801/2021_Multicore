@@ -124,7 +124,7 @@ void Benchmark(int num_threads)
 
 int main()
 {
-	for (int i = 1; i <= 8; i = i * 2) {
+	for (int i = 1; i <= 16; i = i * 2) {
 		myqueue.init();
 		vector<thread> worker;
 

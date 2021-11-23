@@ -1,14 +1,10 @@
-﻿  lazy_skiplist_수업.cpp
-C:\UsingProjects\2021_Multicore\Lab5\Lab5\lazy_skiplist_수업.cpp(618,1): warning C4311: 'reinterpret_cast': 'LFNODE *'에서 'int'(으)로 포인터가 잘립니다.
-C:\UsingProjects\2021_Multicore\Lab5\Lab5\lazy_skiplist_수업.cpp(618,1): warning C4302: 'reinterpret_cast': 'LFNODE *'에서 'int'(으)로 잘립니다.
-C:\UsingProjects\2021_Multicore\Lab5\Lab5\lazy_skiplist_수업.cpp(634,1): warning C4311: 'reinterpret_cast': 'LFNODE *'에서 'int'(으)로 포인터가 잘립니다.
-C:\UsingProjects\2021_Multicore\Lab5\Lab5\lazy_skiplist_수업.cpp(634,1): warning C4302: 'reinterpret_cast': 'LFNODE *'에서 'int'(으)로 잘립니다.
-C:\UsingProjects\2021_Multicore\Lab5\Lab5\lazy_skiplist_수업.cpp(636,1): warning C4311: 'reinterpret_cast': 'LFNODE *'에서 'int'(으)로 포인터가 잘립니다.
-C:\UsingProjects\2021_Multicore\Lab5\Lab5\lazy_skiplist_수업.cpp(636,1): warning C4302: 'reinterpret_cast': 'LFNODE *'에서 'int'(으)로 잘립니다.
-C:\UsingProjects\2021_Multicore\Lab5\Lab5\lazy_skiplist_수업.cpp(1079,1): warning C4311: 'reinterpret_cast': 'LFSKNODE *'에서 'int'(으)로 포인터가 잘립니다.
-C:\UsingProjects\2021_Multicore\Lab5\Lab5\lazy_skiplist_수업.cpp(1079,1): warning C4302: 'reinterpret_cast': 'LFSKNODE *'에서 'int'(으)로 잘립니다.
-C:\UsingProjects\2021_Multicore\Lab5\Lab5\lazy_skiplist_수업.cpp(1097,1): warning C4311: 'reinterpret_cast': 'LFSKNODE *'에서 'int'(으)로 포인터가 잘립니다.
-C:\UsingProjects\2021_Multicore\Lab5\Lab5\lazy_skiplist_수업.cpp(1097,1): warning C4302: 'reinterpret_cast': 'LFSKNODE *'에서 'int'(으)로 잘립니다.
-C:\UsingProjects\2021_Multicore\Lab5\Lab5\lazy_skiplist_수업.cpp(1099,1): warning C4311: 'reinterpret_cast': 'LFSKNODE *'에서 'int'(으)로 포인터가 잘립니다.
-C:\UsingProjects\2021_Multicore\Lab5\Lab5\lazy_skiplist_수업.cpp(1099,1): warning C4302: 'reinterpret_cast': 'LFSKNODE *'에서 'int'(으)로 잘립니다.
+﻿  lockfree_skiplist.cpp
+C:\UsingProjects\2021_Multicore\Lab5\Lab5\lockfree_skiplist.cpp(618,1): warning C4311: 'reinterpret_cast': 'LFNODE *'에서 'int'(으)로 포인터가 잘립니다.
+C:\UsingProjects\2021_Multicore\Lab5\Lab5\lockfree_skiplist.cpp(618,1): warning C4302: 'reinterpret_cast': 'LFNODE *'에서 'int'(으)로 잘립니다.
+C:\UsingProjects\2021_Multicore\Lab5\Lab5\lockfree_skiplist.cpp(624,1): warning C4312: 'reinterpret_cast': 'int'에서 더 큰 'LFNODE *'(으)로의 변환입니다.
+C:\UsingProjects\2021_Multicore\Lab5\Lab5\lockfree_skiplist.cpp(630,1): warning C4312: 'reinterpret_cast': 'int'에서 더 큰 'LFNODE *'(으)로의 변환입니다.
+C:\UsingProjects\2021_Multicore\Lab5\Lab5\lockfree_skiplist.cpp(634,1): warning C4311: 'reinterpret_cast': 'LFNODE *'에서 'int'(으)로 포인터가 잘립니다.
+C:\UsingProjects\2021_Multicore\Lab5\Lab5\lockfree_skiplist.cpp(634,1): warning C4302: 'reinterpret_cast': 'LFNODE *'에서 'int'(으)로 잘립니다.
+C:\UsingProjects\2021_Multicore\Lab5\Lab5\lockfree_skiplist.cpp(636,1): warning C4311: 'reinterpret_cast': 'LFNODE *'에서 'int'(으)로 포인터가 잘립니다.
+C:\UsingProjects\2021_Multicore\Lab5\Lab5\lockfree_skiplist.cpp(636,1): warning C4302: 'reinterpret_cast': 'LFNODE *'에서 'int'(으)로 잘립니다.
   Lab5.vcxproj -> C:\UsingProjects\2021_Multicore\Lab5\x64\Debug\Lab5.exe

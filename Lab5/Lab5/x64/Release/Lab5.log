@@ -1,19 +1,7 @@
-﻿  lazy_skiplist_수업.cpp
-C:\UsingProjects\2021_Multicore\Lab5\Lab5\lazy_skiplist_수업.cpp(618,1): warning C4311: 'reinterpret_cast': 'LFNODE *'에서 'int'(으)로 포인터가 잘립니다.
-C:\UsingProjects\2021_Multicore\Lab5\Lab5\lazy_skiplist_수업.cpp(618,1): warning C4302: 'reinterpret_cast': 'LFNODE *'에서 'int'(으)로 잘립니다.
-C:\UsingProjects\2021_Multicore\Lab5\Lab5\lazy_skiplist_수업.cpp(634,1): warning C4311: 'reinterpret_cast': 'LFNODE *'에서 'int'(으)로 포인터가 잘립니다.
-C:\UsingProjects\2021_Multicore\Lab5\Lab5\lazy_skiplist_수업.cpp(634,1): warning C4302: 'reinterpret_cast': 'LFNODE *'에서 'int'(으)로 잘립니다.
-C:\UsingProjects\2021_Multicore\Lab5\Lab5\lazy_skiplist_수업.cpp(636,1): warning C4311: 'reinterpret_cast': 'LFNODE *'에서 'int'(으)로 포인터가 잘립니다.
-C:\UsingProjects\2021_Multicore\Lab5\Lab5\lazy_skiplist_수업.cpp(636,1): warning C4302: 'reinterpret_cast': 'LFNODE *'에서 'int'(으)로 잘립니다.
-C:\UsingProjects\2021_Multicore\Lab5\Lab5\lazy_skiplist_수업.cpp(1084,1): warning C4311: 'reinterpret_cast': 'LFSKNODE *'에서 'int'(으)로 포인터가 잘립니다.
-C:\UsingProjects\2021_Multicore\Lab5\Lab5\lazy_skiplist_수업.cpp(1084,1): warning C4302: 'reinterpret_cast': 'LFSKNODE *'에서 'int'(으)로 잘립니다.
-C:\UsingProjects\2021_Multicore\Lab5\Lab5\lazy_skiplist_수업.cpp(1102,1): warning C4311: 'reinterpret_cast': 'LFSKNODE *'에서 'int'(으)로 포인터가 잘립니다.
-C:\UsingProjects\2021_Multicore\Lab5\Lab5\lazy_skiplist_수업.cpp(1102,1): warning C4302: 'reinterpret_cast': 'LFSKNODE *'에서 'int'(으)로 잘립니다.
-C:\UsingProjects\2021_Multicore\Lab5\Lab5\lazy_skiplist_수업.cpp(1104,1): warning C4311: 'reinterpret_cast': 'LFSKNODE *'에서 'int'(으)로 포인터가 잘립니다.
-C:\UsingProjects\2021_Multicore\Lab5\Lab5\lazy_skiplist_수업.cpp(1104,1): warning C4302: 'reinterpret_cast': 'LFSKNODE *'에서 'int'(으)로 잘립니다.
+﻿  LF_SET.cpp
   코드를 생성하고 있습니다.
-  3 of 151 functions ( 2.0%) were compiled, the rest were copied from previous compilation.
+  1 of 149 functions ( 0.7%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    2 functions had inline decision re-evaluated but remain unchanged
+    0 functions had inline decision re-evaluated but remain unchanged
   코드를 생성했습니다.
   Lab5.vcxproj -> C:\UsingProjects\2021_Multicore\Lab5\x64\Release\Lab5.exe

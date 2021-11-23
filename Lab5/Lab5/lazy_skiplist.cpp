@@ -752,7 +752,7 @@ public:
 	int top_level;			// - ~ NUM_LEVEL -1 
 	volatile bool fully_linked;
 	volatile bool is_removed;
-	
+
 	std::recursive_mutex nlock;
 	SKNODE() : value(0), top_level(0), fully_linked(false), is_removed(false)
 	{
@@ -878,7 +878,7 @@ public:
 };
 
 class ZSK_SET {
-	SKNODE head, tail;  
+	SKNODE head, tail;
 
 public:
 	ZSK_SET()
@@ -943,15 +943,15 @@ public:
 			int max_lock_level = -1;
 
 			int level_found = Find(x, preds, succs);
-			
+
 			if (-1 != level_found) {
 				SKNODE* nodeFound = succs[level_found];
 				if (!nodeFound->is_removed) {
 					while (!nodeFound->fully_linked) {
 					}
 					return false;
-				} 
-				continue; 
+				}
+				continue;
 			}
 
 
@@ -983,11 +983,11 @@ public:
 			}
 			new_node->fully_linked = true;
 
-			for (int level = 0; level <= max_lock_level; ++level) { 
+			for (int level = 0; level <= max_lock_level; ++level) {
 				preds[level]->nlock.unlock();
 			}
 			return true;
-		} 
+		}
 	}
 	bool Remove(int x)
 	{
@@ -998,7 +998,7 @@ public:
 
 		if (-1 == level_found) {
 			return false;
-		} 
+		}
 		target = currs[level_found];
 
 		if ((-1 == level_found)
@@ -1051,7 +1051,7 @@ public:
 	bool Contains(int x)
 	{
 		SKNODE* preds[NUM_LEVEL], * succs[NUM_LEVEL];
-		  
+
 		int level_found = Find(x, preds, succs);
 
 		return (level_found != -1 && succs[level_found]->fully_linked && !succs[level_found]->is_removed);
@@ -1069,253 +1069,8 @@ public:
 	}
 };
 
-class LFSKNODE {
-public:
-	int value;
-	int next[NUM_LEVEL];
-	int top_level;
-
-	LFSKNODE(int x, int top_level) : value(x), top_level(top_level) {}
-	LFSKNODE() :value(0), top_level(0) {}
-	~LFSKNODE() {}
-
-	void set_next(int level, LFSKNODE* p, bool removed)
-	{
-		int new_value = reinterpret_cast<int>(p);
-		if (true == removed) {
-			new_value++;
-		}
-		next[level] = new_value;
-	}
-	LFSKNODE* get_next(int level)
-	{
-		return reinterpret_cast<LFSKNODE*>(next[level] & LSB_MASK);
-	}
-	LFSKNODE* get_next(int level, bool* removed)
-	{
-		int value = next[level];
-		*removed = 1 == (value & 0x1);
-		return reinterpret_cast<LFSKNODE*>(value & LSB_MASK);
-	}
-	bool CAS_NEXT(int level, LFSKNODE* old_p, LFSKNODE* new_p, bool old_removed, bool new_removed)
-	{
-		int old_v = reinterpret_cast<int>(old_p);
-		if (true == old_removed) old_v++;
-		int new_v = reinterpret_cast<int>(new_p);
-		if (true == new_removed) new_v++;
-		return atomic_compare_exchange_strong(
-			reinterpret_cast<atomic_int*>(&next[level]), &old_v, new_v);
-	}
-	bool is_removed(int level)
-	{
-		return 1 == (next[level] & 0x1);
-	}
-};
-
-class LFSK_SET {
-	LFSKNODE head, tail;
-
-public:
-	LFSK_SET()
-	{
-		head.value = 0x80000000;
-		tail.value = 0x7FFFFFFF;
-
-		for (int i = 0; i < NUM_LEVEL; ++i) {
-			head.set_next(i, &tail, false);
-		} 
-	}
-	~LFSK_SET()
-	{
-		Init();
-	}
-	void Init()
-	{
-		while (head.get_next(0) != &tail) {
-			LFSKNODE* p = head.get_next(0);
-			head.set_next(0, p->get_next(0), false);
-			delete p;
-		}
-
-		for (int i = 0; i < NUM_LEVEL; ++i) {
-			head.set_next(i, &tail, false);
-		}
-	}
-
-	bool Find(int x, LFSKNODE* pred[], LFSKNODE* curr[])
-	{
-		while (true) {
-		retry:
-			int curr_level = NUM_LEVEL - 1;
-			pred[curr_level] = &head;
-
-			while (true) {
-				curr[curr_level] = pred[curr_level]->get_next(curr_level);
-
-				while (true) {
-
-					bool removed;
-					LFSKNODE* succ = curr[curr_level]->get_next(curr_level, &removed);
-					// 마킹 여부 확인
-
-					while (true == removed) {
-						bool ret = pred[curr_level]->CAS_NEXT(curr_level, curr[curr_level], succ, false, false);
-						if (false == ret) {
-							goto retry;
-						}
-						curr[curr_level] = succ;
-						succ = curr[curr_level]->get_next(curr_level, &removed);
-					}
-					if (curr[curr_level]->value < x) {
-						// 검색이 끝나지 않았다면 전진
-						pred[curr_level] = curr[curr_level];
-						curr[curr_level] = succ;
-					}
-					else {
-						break;
-					}
-				}	
-			}
-			if (curr_level == 0) {
-				return curr[0]->value == x;
-			}
-			else {
-				curr_level--;
-				pred[curr_level] = pred[curr_level + 1];
-			}
-		}
-	}
-
-	bool Add(int x)
-	{
-		LFSKNODE* preds[NUM_LEVEL], * succs[NUM_LEVEL];
-		while (true) {
-			bool found = Find(x, preds, succs);
-
-			if (found) {
-				return false;
-			}
-
-			int new_level = 0;
-			for (int i = 0; i < NUM_LEVEL; ++i) {
-				new_level = i;
-				if (rand() % 2 == 0)
-					break;
-			}
-			LFSKNODE* new_node = new LFSKNODE(x, new_level);
-			for (int level = 0; level <= new_level; ++level) {
-				new_node->set_next(level, succs[level], false);
-				preds[level]->set_next(level, new_node, false);
-			}
-
-			LFSKNODE* pred = preds[0];
-			LFSKNODE* succ = succs[0];
-
-			new_node->set_next(0, succ, false);
-			if (false == pred->CAS_NEXT(0, succ, new_node, false, false)) {
-				continue;
-			}
-			for (int level = 1; level < NUM_LEVEL - 1; ++level) {
-				LFSKNODE* pred = preds[level];
-				LFSKNODE* succ = succs[level];
-				
-				if (pred->CAS_NEXT(level, succ, new_node, false, false)) {
-					break;
-				}
-				Find(x, preds, succs);
-			}
-		}
-	}
-	bool Remove(int x)
-	{
-		LFSKNODE* pred[NUM_LEVEL], * curr[NUM_LEVEL];
-		bool found = Find(x, pred, curr);
-
-		if (false == found) {
-			return false;
-		}
-
-		// 마킹은 위에서부터 아래의 순서로
-		LFSKNODE* target = curr[0];
-		int my_top_level = target->top_level;
-		for (int level = my_top_level; level > 0; --level) {
-			bool removed = false;
-			LFSKNODE* succ = target->get_next(level, &removed);
-
-			while (false == removed) {
-				// 마킹 시도
-				target->CAS_NEXT(level, succ, succ, false, true);
-				succ = target->get_next(level, &removed);
-
-				// 다른 쓰레드가 마킹을 먼저 했거나,
-				// succ의 값이 바뀐경우 실패했을 수 있으니
-				// succ의 값을 갱신해서 실패한 경우 새로 시도할 수 있도록
-			}
-		}
-
-		LFSKNODE* succ = target->get_next(0);
-		while (true) {
-			bool i_do = target->CAS_NEXT(0, succ, succ, false, true);
-			if (true == i_do) {
-				Find(x, pred, curr);
-				return true;
-			}
-
-			// 여기로 오면 실패한경우
-			// 왜? 
-			// 1. 다른 스레드가 먼저 시도
-			// 2. succ가 틀어진 경우
-			bool removed = false;
-			succ = curr[0]->get_next(0, &removed);
-			if (true == removed) {
-				return false;
-			}
-		} 
-	}
-	bool Contains(int x)
-	{
-		bool marked = false;
-
-		LFSKNODE* pred = &head;
-		LFSKNODE* curr = nullptr;
-		LFSKNODE* succ = nullptr;
-
-		for (int level = NUM_LEVEL - 1; level > 0; --level) {
-			curr = pred->get_next(level);
-
-			while (true) {
-				succ = curr->get_next(level, &marked);
-
-				while (marked) {
-					curr = curr->get_next(level);
-					succ = curr->get_next(level, &marked);
-				}
-				if (curr->value < x) {
-					pred = curr;
-					curr = succ;
-				}
-				else {
-					break;
-				}
-			}
-		}
-		return (curr->value == x);
-	}
-	void Verify()
-	{
-		LFSKNODE* p = head.get_next(0);
-		for (int i = 0; i < 20; ++i) {
-			if (p == &tail) break;
-			cout << p->value << ", ";
-			p = p->get_next(0);
-		}
-		cout << endl;
-	}
-};
-
 //CSK_SET myset;
 ZSK_SET myset;
-//LFSK_SET myset;
 
 void Benchmark(int num_threads)
 {

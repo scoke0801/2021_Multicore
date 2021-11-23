@@ -39,7 +39,10 @@
     <ClCompile Include="skiplist.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="lazy_skiplist_수업.cpp">
+    <ClCompile Include="lockfree_skiplist.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="lazy_skiplist.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
