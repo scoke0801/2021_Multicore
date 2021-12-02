@@ -1,7 +1,14 @@
-﻿  LF_SET.cpp
+﻿  lockfree_skiplist.cpp
+C:\UsingProject\2021_Multicore\Lab5\Lab5\lockfree_skiplist.cpp(618,1): warning C4311: 'reinterpret_cast': 'LFNODE *'에서 'int'(으)로 포인터가 잘립니다.
+C:\UsingProject\2021_Multicore\Lab5\Lab5\lockfree_skiplist.cpp(618,1): warning C4302: 'reinterpret_cast': 'LFNODE *'에서 'int'(으)로 잘립니다.
+C:\UsingProject\2021_Multicore\Lab5\Lab5\lockfree_skiplist.cpp(624,1): warning C4312: 'reinterpret_cast': 'int'에서 더 큰 'LFNODE *'(으)로의 변환입니다.
+C:\UsingProject\2021_Multicore\Lab5\Lab5\lockfree_skiplist.cpp(630,1): warning C4312: 'reinterpret_cast': 'int'에서 더 큰 'LFNODE *'(으)로의 변환입니다.
+C:\UsingProject\2021_Multicore\Lab5\Lab5\lockfree_skiplist.cpp(634,1): warning C4311: 'reinterpret_cast': 'LFNODE *'에서 'int'(으)로 포인터가 잘립니다.
+C:\UsingProject\2021_Multicore\Lab5\Lab5\lockfree_skiplist.cpp(634,1): warning C4302: 'reinterpret_cast': 'LFNODE *'에서 'int'(으)로 잘립니다.
+C:\UsingProject\2021_Multicore\Lab5\Lab5\lockfree_skiplist.cpp(636,1): warning C4311: 'reinterpret_cast': 'LFNODE *'에서 'int'(으)로 포인터가 잘립니다.
+C:\UsingProject\2021_Multicore\Lab5\Lab5\lockfree_skiplist.cpp(636,1): warning C4302: 'reinterpret_cast': 'LFNODE *'에서 'int'(으)로 잘립니다.
   코드를 생성하고 있습니다.
-  1 of 149 functions ( 0.7%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
-    0 functions had inline decision re-evaluated but remain unchanged
+  Previous IPDB not found, fall back to full compilation.
+  All 152 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
   코드를 생성했습니다.
-  Lab5.vcxproj -> C:\UsingProjects\2021_Multicore\Lab5\x64\Release\Lab5.exe
+  Lab5.vcxproj -> C:\UsingProject\2021_Multicore\Lab5\x64\Release\Lab5.exe
