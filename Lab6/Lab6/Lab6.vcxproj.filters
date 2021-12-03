@@ -21,6 +21,12 @@
     <ClCompile Include="lab_tbb.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="lab_tbb_RW_LOCK.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="lab_transaction.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\Lab5\Lab5\수업메모.txt" />
