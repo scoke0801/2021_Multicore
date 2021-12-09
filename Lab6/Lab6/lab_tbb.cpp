@@ -153,11 +153,57 @@ int lab5() {
 	return 0;
 }
 
+#include <tbb/task_group.h>
+
+// task_group lab
+constexpr int FIB_MAX = 45;
+int serial_fibo(int n) {
+	if (n < 2) {
+		return n;
+	}
+	return serial_fibo(n - 2) + serial_fibo(n - 1);
+}
+
+int parallel_fibo(int n)
+{
+	if (n < 30) {
+		return serial_fibo(n);
+	}
+
+	int x, y;
+
+	task_group g;
+	g.run([&]() { x = parallel_fibo(n - 2); });
+	g.run([&]() { y = parallel_fibo(n - 1); });
+
+	g.wait();
+
+	return x + y;
+}
+
+int lab6() { 
+	auto start_t = system_clock::now();
+	volatile int result = serial_fibo(FIB_MAX);
+	auto end_t = system_clock::now();
+	auto time_elapsed = duration_cast<milliseconds>(end_t - start_t);
+	cout << "single fibo : " << result << " ";
+	cout << "time : " << time_elapsed.count() << "\n";
+
+	start_t = system_clock::now();
+	result = parallel_fibo(FIB_MAX);
+	end_t = system_clock::now();
+	time_elapsed = duration_cast<milliseconds>(end_t - start_t);
+	cout << "TBB fibo : " << result << " ";
+	cout << "time : " << time_elapsed.count() << "\n";
+
+	return 0;
+}
+
 int main() {
 //	lab3();
 //	lab4();
-	
-	lab5();
+//	lab5();
+	lab6();
 
 	return 0;
 }

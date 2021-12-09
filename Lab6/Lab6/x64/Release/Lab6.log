@@ -1,14 +1,39 @@
-﻿  lab_tbb_RW_LOCK.cpp
-C:\UsingProject\2021_Multicore\Lab6\Lab6\lab_tbb_RW_LOCK.cpp(191,10): warning C4102: 'dafault': 참조되지 않은 레이블입니다.
-  lab_transaction.cpp
-C:\UsingProject\2021_Multicore\Lab6\Lab6\lab_transaction.cpp(433,8): error C2065: '_XBEGIN_STARTED': 선언되지 않은 식별자입니다.
-C:\UsingProject\2021_Multicore\Lab6\Lab6\lab_transaction.cpp(433,27): error C3861: 'my_xbegin': 식별자를 찾을 수 없습니다.
-C:\UsingProject\2021_Multicore\Lab6\Lab6\lab_transaction.cpp(436,6): error C3861: '_xend': 식별자를 찾을 수 없습니다.
-C:\UsingProject\2021_Multicore\Lab6\Lab6\lab_transaction.cpp(446,6): error C3861: '_xend': 식별자를 찾을 수 없습니다.
-C:\UsingProject\2021_Multicore\Lab6\Lab6\lab_transaction.cpp(453,5): error C3861: '_xabort': 식별자를 찾을 수 없습니다.
-C:\UsingProject\2021_Multicore\Lab6\Lab6\lab_transaction.cpp(625,1): warning C4311: 'reinterpret_cast': 'LFNODE *'에서 'int'(으)로 포인터가 잘립니다.
-C:\UsingProject\2021_Multicore\Lab6\Lab6\lab_transaction.cpp(625,1): warning C4302: 'reinterpret_cast': 'LFNODE *'에서 'int'(으)로 잘립니다.
-C:\UsingProject\2021_Multicore\Lab6\Lab6\lab_transaction.cpp(641,1): warning C4311: 'reinterpret_cast': 'LFNODE *'에서 'int'(으)로 포인터가 잘립니다.
-C:\UsingProject\2021_Multicore\Lab6\Lab6\lab_transaction.cpp(641,1): warning C4302: 'reinterpret_cast': 'LFNODE *'에서 'int'(으)로 잘립니다.
-C:\UsingProject\2021_Multicore\Lab6\Lab6\lab_transaction.cpp(643,1): warning C4311: 'reinterpret_cast': 'LFNODE *'에서 'int'(으)로 포인터가 잘립니다.
-C:\UsingProject\2021_Multicore\Lab6\Lab6\lab_transaction.cpp(643,1): warning C4302: 'reinterpret_cast': 'LFNODE *'에서 'int'(으)로 잘립니다.
+﻿  lab_tbb.cpp
+C:\Program Files (x86)\Intel\oneAPI\tbb\2021.4.0\include\oneapi\tbb\parallel_for.h(208,1): warning C4267: '인수': 'size_t'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Program Files (x86)\Intel\oneAPI\tbb\2021.4.0\include\oneapi\tbb\parallel_for.h(194): message : 클래스 템플릿 멤버 함수 'void tbb::detail::d1::parallel_for_body_wrapper<Function,Index>::operator ()(const tbb::detail::d1::blocked_range<Index> &) const'을(를) 컴파일하는 중입니다.
+          with
+          [
+              Function=counter_tbb_hash_map::<lambda_c9fbdd304974dfa6236278d7779a572e>,
+              Index=size_t
+          ]
+C:\Program Files (x86)\Intel\oneAPI\tbb\2021.4.0\include\oneapi\tbb\parallel_for.h(119): message : 컴파일되는 함수 템플릿 인스턴스화 'void tbb::detail::d1::parallel_for_body_wrapper<Function,Index>::operator ()(const tbb::detail::d1::blocked_range<Index> &) const'에 대한 참조를 확인하세요.
+          with
+          [
+              Function=counter_tbb_hash_map::<lambda_c9fbdd304974dfa6236278d7779a572e>,
+              Index=size_t
+          ]
+C:\Program Files (x86)\Intel\oneAPI\tbb\2021.4.0\include\oneapi\tbb\parallel_for.h(315): message : 컴파일되는 클래스 템플릿 인스턴스화 'tbb::detail::d1::parallel_for_body_wrapper<Function,Index>'에 대한 참조를 확인하세요.
+          with
+          [
+              Function=counter_tbb_hash_map::<lambda_c9fbdd304974dfa6236278d7779a572e>,
+              Index=size_t
+          ]
+C:\Program Files (x86)\Intel\oneAPI\tbb\2021.4.0\include\oneapi\tbb\parallel_for.h(355): message : 컴파일되는 함수 템플릿 인스턴스화 'void tbb::detail::d1::parallel_for_impl<Index,Function,const tbb::detail::d1::auto_partitioner>(Index,Index,Index,const Function &,Partitioner &)'에 대한 참조를 확인하세요.
+          with
+          [
+              Index=size_t,
+              Function=counter_tbb_hash_map::<lambda_c9fbdd304974dfa6236278d7779a572e>,
+              Partitioner=const tbb::detail::d1::auto_partitioner
+          ]
+C:\UsingProject\2021_Multicore\Lab6\Lab6\lab_tbb.cpp(117): message : 컴파일되는 함수 템플릿 인스턴스화 'void tbb::detail::d1::parallel_for<size_t,counter_tbb_hash_map::<lambda_c9fbdd304974dfa6236278d7779a572e>>(Index,Index,const Function &)'에 대한 참조를 확인하세요.
+          with
+          [
+              Index=size_t,
+              Function=counter_tbb_hash_map::<lambda_c9fbdd304974dfa6236278d7779a572e>
+          ]
+  코드를 생성하고 있습니다.
+  2 of 669 functions ( 0.3%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
+  코드를 생성했습니다.
+  Lab6.vcxproj -> C:\UsingProject\2021_Multicore\Lab6\x64\Release\Lab6.exe

@@ -460,8 +460,7 @@ public:
 				//switch (ts_result) {
 				//	// to do...
 				//} 
-			}
-			_xend();
+			} 
 		}
 	}
 	bool Remove(int x)
@@ -762,7 +761,7 @@ Z_SET myset;
 void Benchmark(int num_threads)
 {
 	const int NUM_TEST = 4000000;
-	const int RANGE = 2000;
+	const int RANGE = 1000;
 
 	for (int i = 0; i < NUM_TEST / num_threads; ++i) {
 		int x = rand() % RANGE;
