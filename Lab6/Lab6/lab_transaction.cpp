@@ -391,6 +391,8 @@ public:
 	}
 };
 
+#include <immintrin.h>
+
 class Z_SET {
 	NODE head, tail;
 
@@ -422,6 +424,8 @@ public:
 	bool Add(int x)
 	{
 		NODE* pred, * curr;
+
+		NODE* new_node = new NODE(x);
 		while (true) {
 			pred = &head;
 			curr = pred->next;
@@ -430,20 +434,19 @@ public:
 				curr = curr->next;
 			}
 			//pred->Lock(); curr->Lock();
-			if (_XBEGIN_STARTED != my_xbegin()) continue;
+			if (_XBEGIN_STARTED != _xbegin()) continue;
 			if (Validate(pred, curr) == true) {
 				if (curr->value == x) {
-					_xend(0);
+					_xend();
 					//pred->Unlock();
 					//curr->Unlock();
 					return false;
 				}
 				else {
-					NODE* new_node = new NODE(x);
 					new_node->next = curr;
 					atomic_thread_fence(memory_order_seq_cst);
 					pred->next = new_node;
-					_xend(0);
+					_xend();
 					//pred->Unlock();
 					//curr->Unlock();
 					return true;
