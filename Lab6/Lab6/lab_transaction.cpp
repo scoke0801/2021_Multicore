@@ -433,31 +433,35 @@ public:
 				pred = curr;
 				curr = curr->next;
 			}
-			//pred->Lock(); curr->Lock();
-			if (_XBEGIN_STARTED != _xbegin()) continue;
-			if (Validate(pred, curr) == true) {
-				if (curr->value == x) {
-					_xend();
-					//pred->Unlock();
-					//curr->Unlock();
-					return false;
+
+			int ts_result = _xbegin();
+			if (ts_result == _XBEGIN_STARTED) {
+				if (Validate(pred, curr) == true) {
+					if (curr->value == x) {
+						_xend();
+						delete new_node;
+						return false;
+					}
+					else {
+						new_node->next = curr; 
+						pred->next = new_node;
+						_xend();
+						return true;
+					}
 				}
 				else {
-					new_node->next = curr;
-					atomic_thread_fence(memory_order_seq_cst);
-					pred->next = new_node;
-					_xend();
-					//pred->Unlock();
-					//curr->Unlock();
-					return true;
+					_xabort(0);
+					continue;
 				}
 			}
 			else {
-				_xabort(0);
-				continue;
+				// 여기는 수업시간에 다루지 않음~~
+				// 원래라면 이런식으로 접근했을듯 ~~
+				//switch (ts_result) {
+				//	// to do...
+				//} 
 			}
-			//pred->Unlock();
-			//curr->Unlock();
+			_xend();
 		}
 	}
 	bool Remove(int x)
@@ -470,22 +474,22 @@ public:
 				pred = curr;
 				curr = curr->next;
 			}
-			pred->Lock(); curr->Lock();
-			if (Validate(pred, curr) == true) {
-				if (curr->value != x) {
-					pred->Unlock();
-					curr->Unlock();
-					return false;
+			int ts_result = _xbegin();
+			if (ts_result == _XBEGIN_STARTED) {
+				if (Validate(pred, curr) == true) {
+					if (curr->value != x) {
+						_xend();
+						return false;
+					}
+					else {
+						curr->removed = true;
+						pred->next = curr->next;
+						_xend();
+						return true;
+					}
 				}
-				else {
-					pred->next = curr->next;
-					pred->Unlock();
-					curr->Unlock();
-					return true;
-				}
+				_xend();
 			}
-			pred->Unlock();
-			curr->Unlock();
 		}
 	}
 	bool Contains(int x)
