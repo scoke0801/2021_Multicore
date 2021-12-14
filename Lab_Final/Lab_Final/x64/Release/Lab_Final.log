@@ -1,7 +1,7 @@
-﻿  소스.cpp
+﻿  Stack.cpp
   코드를 생성하고 있습니다.
-  16 of 151 functions (10.6%) were compiled, the rest were copied from previous compilation.
-    10 functions were new in current compilation
-    4 functions had inline decision re-evaluated but remain unchanged
+  5 of 166 functions ( 3.0%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    1 functions had inline decision re-evaluated but remain unchanged
   코드를 생성했습니다.
   Lab_Final.vcxproj -> C:\UsingProjects\2021_Multicore\Lab_Final\x64\Release\Lab_Final.exe
